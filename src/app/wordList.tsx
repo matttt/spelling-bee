@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { animated, useSpring, useTransition } from '@react-spring/web'
 
-const useResize = (myRef) => {
+const useResize = (myRef:any) => {
     const [width, setWidth] = useState(0)
     const [height, setHeight] = useState(0)
 
