@@ -164,7 +164,7 @@ interface WordListProps {
     providedLetters: string[]
 }
 export function WordList({ words, providedLetters }: WordListProps) {
-    const componentRef = useRef()
+    const componentRef = useRef() as any
     const { width, height } = useResize(componentRef)
 
     const score = getScore(words, providedLetters)
