@@ -2,8 +2,9 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { animated, useSpring, useTransition } from '@react-spring/web'
+import { isMobile} from 'react-device-detect';
 
-const useResize = (myRef:any) => {
+const useResize = (myRef: any) => {
     const [width, setWidth] = useState(0)
     const [height, setHeight] = useState(0)
 
@@ -51,20 +52,19 @@ function Level(props: { w: number, score: number }) {
 
     const { w } = props;
 
-    const textWidth = 125
 
-    const width = w - textWidth * 2;
+    const textWidth = 100
+    const lineWidth = w - textWidth - 50;
 
     const circles = [];
-    const numCircles = 10;
 
 
     const springs = useSpring({
         from: { x: 0, y: 20 },
-        to: { x: width / numCircles * curLevel, y: 20 },
+        to: { x: lineWidth / (levels.length - 1) * curLevel, y: 20 },
         config: {
             mass: 5,
-            friction: 50,
+            friction: 75,
             tension: 500,
         }
     });
@@ -75,24 +75,29 @@ function Level(props: { w: number, score: number }) {
     </animated.g >
 
 
-    for (let i = 0; i <= numCircles; i++) {
-        const x = width / numCircles * i;
+    for (let i = 0; i < levels.length; i++) {
+        const x = lineWidth / (levels.length - 1) * i;
 
-        circles.push(<circle key={i} cx={x} cy={20} r={5} fill={i <= curLevel ? "#F2DB50" : "#BBB"} />)
+        if (levels[i][0] === 'Genius') {
+            circles.push(<rect key={i} x={x} y={15} width={10} height={10} fill={i <= curLevel ? "#F2DB50" : "#BBB"} />)
+        } else {
+
+            circles.push(<circle key={i} cx={x} cy={20} r={5} fill={i <= curLevel ? "#F2DB50" : "#BBB"} />)
+        }
     }
 
 
     return (
-        <div>
-            <svg width={700} height={50}>
-                <text y="25" style={{ fontWeight: "bold" }}>{levels[curLevel][0]}</text>
-                <g transform={`translate(${textWidth}, 0)`}>
-                    <line x1={0} y1="20" x2={width} y2="20" style={{ stroke: "#BBB", strokeWidth: 2 }} />
-                    {circles}
-                    {scoreCircle}
-                </g>
-            </svg>
-        </div>
+        // <div>
+        <svg width={w} height={50}>
+            <text x={0} y="25" style={{ fontWeight: "bold" }}>{levels[curLevel][0]}</text>
+            <g transform={`translate(${textWidth}, 0)`}>
+                <line x1={0} y1="20" x2={lineWidth} y2="20" style={{ stroke: "#BBB", strokeWidth: 2 }} />
+                {circles}
+                {scoreCircle}
+            </g>
+        </svg>
+        // </div>
     );
 
 }
@@ -104,24 +109,41 @@ interface CompletedWordsProps {
 
 function CompletedWords({ words, providedLetters }: CompletedWordsProps) {
 
-    // const sortedWords = words.sort((a, b) => a.localeCompare(b))
-    const transitions = useTransition(words, {
-        from: { opacity: 0, x: -5 },
+    let wordsToUse = []
+    if (!isMobile) {
+        wordsToUse = [...words].sort((a, b) => a.localeCompare(b))
+    } else {
+        wordsToUse = [...words].reverse()
+    }
+
+    const transitions = useTransition(wordsToUse, {
+        from: { opacity: 0, x: -10 },
         enter: { opacity: 1, x: 0 },
-        leave: { opacity: 0, x: -5 },
+        leave: { opacity: 0, x: -10 },
+        exitBeforeEnter: true,
     })
 
 
     return (
-        <div className="border rounded-s h-full p-5 overflow-y-auto">
-            <h1>{`You have found ${words.length} word${words.length !== 1 ? 's' : ''}`}</h1>
+        <div className='grow'>
+            <div className="border rounded-s p-2 flex flex-col h-auto md:h-full md:p-5">
+                {!isMobile && <h1>{`You have found ${words.length} word${words.length !== 1 ? 's' : ''}`}</h1>}
 
-            <ul className='p-5 w-[15rem]'>{transitions((style, word) => {
-                const isPanagram = providedLetters.every(letter => word.includes(letter))
+                {!isMobile && <ul className='p-5 w-[15rem] grow flex flex-col flex-wrap h-3 w-full'>{transitions((style, word) => {
+                    const isPanagram = providedLetters.every(letter => word.includes(letter))
 
-                return <animated.li className="border-b pt-5 text-l" style={{ fontWeight: isPanagram ? "bold" : "initial", ...style }}>{word.charAt(0).toUpperCase() + word.substring(1).toLowerCase()}</animated.li>
-            })}</ul>
+                    return <animated.li className="border-b pt-3 text-[16px]" style={{ fontWeight: isPanagram ? "bold" : "initial", width: '33.33%', ...style }}>{word.charAt(0).toUpperCase() + word.substring(1).toLowerCase()}</animated.li>
+                })}</ul>}
 
+                {isMobile && <ul className='pb-5 w-[15rem] grow flex flex-row h-3 w-full overflow-x-auto'>{transitions((style, word) => {
+                    const isPanagram = providedLetters.every(letter => word.includes(letter))
+
+                    return <animated.li className="text-[16px] mr-3" style={{ fontWeight: isPanagram ? "bold" : "initial", ...style }}>{word.charAt(0).toUpperCase() + word.substring(1).toLowerCase()}</animated.li>
+                })}</ul>}
+
+                {/* <div className='grow bg-slate-50'></div> */}
+
+            </div>
         </div>
     );
 }
@@ -170,7 +192,7 @@ export function WordList({ words, providedLetters }: WordListProps) {
     const score = getScore(words, providedLetters)
 
     return (
-        <div className="w-full m-5" ref={componentRef}>
+        <div className="w-full p-5 flex flex-col" ref={componentRef}>
             <Level w={width} score={score}></Level>
             <CompletedWords words={words} providedLetters={providedLetters}></CompletedWords>
         </div>

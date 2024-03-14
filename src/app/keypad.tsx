@@ -1,14 +1,15 @@
 "use client"
-import { CSSProperties, useState } from 'react'
+import { CSSProperties, useState, useRef } from 'react'
 import { CEL } from './cel'
 import { useKeyPress } from 'ahooks';
 import SvgIcon from '@mui/material/SvgIcon';
 import { useSpring, animated, useSprings } from '@react-spring/web'
 import Snackbar from '@mui/material/Snackbar';
+import confetti from 'canvas-confetti'
+import { useMeasure } from "@uidotdev/usehooks";
+import {isMobile} from 'react-device-detect'
 
 import { scoreWord } from './wordList';
-
-
 
 const YELLOW = '#F2DB50'
 
@@ -77,25 +78,18 @@ export function Keypad({ initOuterLetters, centerLetter, curWord, setCurWord, wo
     const [snackbarOpen, setSnackbarOpen] = useState<boolean>()
     const [snackbarMessage, setSnackbarMessage] = useState<string>('')
     const [scoreText, setScoreText] = useState<number>(0)
+    const [congratsText, setCongratsText] = useState<string>("Nice!")
+    const [isPanagram, setIsPanagram] = useState<boolean>(false)
+
+    const [ref, { width, height }] = useMeasure();
+
+    const keypadSVGRef = useRef(null);
 
     function addLetter(letter: string) {
         setHasTyped(true)
         setCurWord(curWord + letter)
     }
 
-    const R = 70;
-    const r = R * innerToOuterRadiusRatio;
-    const spacingFactor = 1.1
-
-
-    const hexPositions = [
-        [0, - r * 2 * spacingFactor],
-        [R * 1.5 * spacingFactor, - r * spacingFactor],
-        [R * 1.5 * spacingFactor, r * spacingFactor],
-        [0, r * 2 * spacingFactor],
-        [-R * 1.5 * spacingFactor, r * spacingFactor],
-        [-R * 1.5 * spacingFactor, - r * spacingFactor]
-    ]
 
     const letterSpans = [];
 
@@ -224,10 +218,15 @@ export function Keypad({ initOuterLetters, centerLetter, curWord, setCurWord, wo
         addLetter(event.key.toUpperCase())
     });
 
+    // @ts-ignore
+    const rect = keypadSVGRef?.current?.getBoundingClientRect();
+
 
     function addWord(word: string) {
         const score = scoreWord(word, [...outerLetters, centerLetter])
         setScoreText(score)
+
+
 
         const congratsTexts: [string, number][] = [
             ['Great!', 1],
@@ -242,7 +241,17 @@ export function Keypad({ initOuterLetters, centerLetter, curWord, setCurWord, wo
             ['Unreal!', 16],
         ]
 
-        const congratsText = congratsTexts.find(([text, threshold]) => score >= threshold) || 'Nice!'
+        const achievedCongrats = congratsTexts.find(([text, threshold]) => score >= threshold)
+        const isPanagram = Array.from(new Set(word.split(''))).length >= 7
+
+        if (achievedCongrats && !isPanagram) {
+            setCongratsText(achievedCongrats[0]);
+        } else if (isPanagram) {
+            setCongratsText("Panagram!");
+            setTimeout(() => confetti({ origin: { x: (rect.x + rect.width / 2) / window.innerWidth, y: -.5 }, angle: 270 }), 500)
+        }
+
+        setIsPanagram(isPanagram);
 
         wordSuccessApi.start({
             to: [{ opacity: 1, y: -10 }, { opacity: 0, delay: 500 }],
@@ -260,16 +269,34 @@ export function Keypad({ initOuterLetters, centerLetter, curWord, setCurWord, wo
     }
 
 
+    const svgSideLength = (width||0)*(isMobile ? 1 : .6)
+
+
+    const R = .14*svgSideLength;
+    const r = R * innerToOuterRadiusRatio;
+    const spacingFactor = 1.1
+
+
+    const hexPositions = [
+        [0, - r * 2 * spacingFactor],
+        [R * 1.5 * spacingFactor, - r * spacingFactor],
+        [R * 1.5 * spacingFactor, r * spacingFactor],
+        [0, r * 2 * spacingFactor],
+        [-R * 1.5 * spacingFactor, r * spacingFactor],
+        [-R * 1.5 * spacingFactor, - r * spacingFactor]
+    ]
+
 
     return (
-        <div className="w-full">
+        <div className="w-full" ref={ref}>
             <div className="flex h-full">
                 <div className="grow"></div>
                 <div className="flex flex-col h-full">
                     <div className="grow"></div>
+                    {!isMobile && <div className="grow"></div>}
                     <div className='flex'>
                         <div className='grow'></div>
-                        <animated.div className='px-3 py-2 border border-gray-300 rounded mx-auto' style={wordSuccessSprings}>Nice</animated.div>
+                        <animated.div className={`px-3 py-2 border border-gray-300 rounded mx-auto`} style={{ backgroundColor: isPanagram ? YELLOW : 'white', ...wordSuccessSprings }}>{congratsText}</animated.div>
                         <animated.div className='font-bold py-2 px-4' style={wordSuccessScoreSprings}>+{scoreText}</animated.div>
                         <div className='grow'></div>
                     </div>
@@ -278,11 +305,11 @@ export function Keypad({ initOuterLetters, centerLetter, curWord, setCurWord, wo
 
                         <animated.h1 style={{ ...wordErrorSprings }}><span className='cursor'>{letterSpans}</span>{hasTyped ? "" : "Type or click"}</animated.h1>
                     </div>
-                    <svg width="500" height="500">
-                        <Hexy x={250} y={250} r={R} c={YELLOW} letter={centerLetter} addLetter={addLetter} />
+                    <svg width={svgSideLength} height={svgSideLength} ref={keypadSVGRef}>
+                        <Hexy x={svgSideLength/2} y={svgSideLength/2} r={R} c={YELLOW} letter={centerLetter} addLetter={addLetter} />
 
                         {hexPositions.map((pos, idx) => {
-                            return <Hexy key={idx} x={250 + pos[0]} y={250 + pos[1]} r={R} c={"#E6E6E6"} letter={outerLetters[idx]} addLetter={addLetter} springs={letterSprings[idx]} />
+                            return <Hexy key={idx} x={svgSideLength/2 + pos[0]} y={svgSideLength/2 + pos[1]} r={R} c={"#E6E6E6"} letter={outerLetters[idx]} addLetter={addLetter} springs={letterSprings[idx]} />
                         })}
                     </svg>
                     <div className="flex">
@@ -294,7 +321,7 @@ export function Keypad({ initOuterLetters, centerLetter, curWord, setCurWord, wo
                         <PillButton content="Enter" onClick={submitWord} />
                         <div className="grow"></div>
                     </div>
-                    <div className='h-10'></div>
+                    <div className='h-[100px]'></div>
                     <div className="grow"></div>
                 </div>
                 <div className="grow"></div>
@@ -306,6 +333,7 @@ export function Keypad({ initOuterLetters, centerLetter, curWord, setCurWord, wo
                 message={snackbarMessage}
                 anchorOrigin={{ vertical: 'top', horizontal: 'left' }}
             />
+
         </div>
     );
 }
