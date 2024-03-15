@@ -136,9 +136,6 @@ export function Keypad({ smartIsMobile, initOuterLetters, centerLetter, curWord,
         6,
         () => ({
             from: { opacity: 1 },
-            config: {
-                duration: 50
-            }
             //   to: { opacity: 1 },
         }),
         []
