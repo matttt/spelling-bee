@@ -7,7 +7,7 @@ import { isMobile } from 'react-device-detect';
 
 export default function Home() {
 
-  const testWords = [
+  const testWords: any = [
     // "ABATING",
     // "AGITATING",
     // "ANTIAGING",
