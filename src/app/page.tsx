@@ -36,7 +36,7 @@ export default function Home() {
 
 
   return (
-    <main className="flex flex-col-reverse h-dvh h-screen md:flex-row">
+    <main className="flex flex-col-reverse h-dvh md:flex-row">
       {isMobile && <div className='grow bg-slate-50'></div>}
       <Keypad initOuterLetters={outerLetters} centerLetter={centerLetter} curWord={curWord} setCurWord={setCurWord} words={words} setWords={setWords} />
       <WordList words={words} providedLetters={[...outerLetters, centerLetter]} />
