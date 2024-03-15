@@ -1,11 +1,18 @@
 "use client"
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { WordList } from "./wordList";
 import { Keypad } from "./keypad";
 import { isMobile } from 'react-device-detect';
 
 
 export default function Home() {
+  const [isClient, setIsClient] = useState<boolean>(false)
+
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+
+  const smartIsMobile = isMobile && isClient;
 
   const testWords: any = [
     // "ABATING",
@@ -36,10 +43,11 @@ export default function Home() {
 
 
   return (
-    <main className="flex flex-col-reverse h-dvh md:flex-row">
-      {isMobile && <div className='grow bg-slate-50'></div>}
-      <Keypad initOuterLetters={outerLetters} centerLetter={centerLetter} curWord={curWord} setCurWord={setCurWord} words={words} setWords={setWords} />
-      <WordList words={words} providedLetters={[...outerLetters, centerLetter]} />
+    <main className="flex flex-col-reverse h-full md:flex-row overflow-hidden">
+      {smartIsMobile && <div className='grow bg-slate-50'></div>}
+      <Keypad smartIsMobile={smartIsMobile} initOuterLetters={outerLetters} centerLetter={centerLetter} curWord={curWord} setCurWord={setCurWord} words={words} setWords={setWords} />
+      <WordList smartIsMobile={smartIsMobile} words={words} providedLetters={[...outerLetters, centerLetter]} />
+      {/* {isMobile && <div className='h-10 bg-slate-50'></div>} */}
     </main>
   );
 }

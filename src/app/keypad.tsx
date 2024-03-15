@@ -54,7 +54,7 @@ function Hexy({ x, y, r, c, letter, addLetter, springs }: HexProps) {
                 x={0}
                 y={3}
                 fill={"#000"}
-                style={{ fontWeight: 'bold', fontSize: '36px', userSelect: 'none', ...springs }}
+                style={{ fontWeight: 'bold', fontSize: `${Math.floor(r*.75)}px`, userSelect: 'none', ...springs }}
                 dominantBaseline="middle"
                 textAnchor="middle"
                 pointerEvents={"none"}
@@ -71,8 +71,9 @@ interface KeypadProps {
     setCurWord: (word: string) => void
     words: string[]
     setWords: (words: string[]) => void
+    smartIsMobile: boolean
 }
-export function Keypad({ initOuterLetters, centerLetter, curWord, setCurWord, words, setWords }: KeypadProps) {
+export function Keypad({ smartIsMobile, initOuterLetters, centerLetter, curWord, setCurWord, words, setWords }: KeypadProps) {
     const [hasTyped, setHasTyped] = useState(false)
     const [outerLetters, setOuterLetters] = useState(initOuterLetters)
     const [snackbarOpen, setSnackbarOpen] = useState<boolean>()
@@ -269,7 +270,7 @@ export function Keypad({ initOuterLetters, centerLetter, curWord, setCurWord, wo
     }
 
 
-    const svgSideLength = (width||0)*(isMobile ? 1 : .6)
+    const svgSideLength = (width||0)*(isMobile ? .9 : .6)
 
 
     const R = .14*svgSideLength;
@@ -293,14 +294,14 @@ export function Keypad({ initOuterLetters, centerLetter, curWord, setCurWord, wo
                 <div className="grow"></div>
                 <div className="flex flex-col h-full">
                     <div className="grow"></div>
-                    {!isMobile && <div className="grow"></div>}
+                    {!smartIsMobile && <div className="grow"></div>}
                     <div className='flex'>
                         <div className='grow'></div>
                         <animated.div className={`px-3 py-2 border border-gray-300 rounded mx-auto`} style={{ backgroundColor: isPanagram ? YELLOW : 'white', ...wordSuccessSprings }}>{congratsText}</animated.div>
                         <animated.div className='font-bold py-2 px-4' style={wordSuccessScoreSprings}>+{scoreText}</animated.div>
                         <div className='grow'></div>
                     </div>
-                    <div className='grow'></div>
+                    {/* <div className='grow'></div> */}
                     <div className="text-4xl w-full text-center h-10 curWord" style={{ fontWeight: 'bold', color: hasTyped ? "#000" : "#959595" }}>
 
                         <animated.h1 style={{ ...wordErrorSprings }}><span className='cursor'>{letterSpans}</span>{hasTyped ? "" : "Type or click"}</animated.h1>
@@ -321,7 +322,7 @@ export function Keypad({ initOuterLetters, centerLetter, curWord, setCurWord, wo
                         <PillButton content="Enter" onClick={submitWord} />
                         <div className="grow"></div>
                     </div>
-                    <div className='h-[100px]'></div>
+                    {!smartIsMobile && <div className='h-[100px]'></div>}
                     <div className="grow"></div>
                 </div>
                 <div className="grow"></div>

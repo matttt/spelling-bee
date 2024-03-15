@@ -3,28 +3,30 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { animated, useSpring, useTransition } from '@react-spring/web'
 import { isMobile} from 'react-device-detect';
+import { useMeasure } from "@uidotdev/usehooks";
 
-const useResize = (myRef: any) => {
-    const [width, setWidth] = useState(0)
-    const [height, setHeight] = useState(0)
 
-    const handleResize = useCallback(() => {
-        setWidth(myRef.current.offsetWidth)
-        setHeight(myRef.current.offsetHeight)
-    }, [myRef])
+// const useResize = (myRef: any) => {
+//     const [width, setWidth] = useState(0)
+//     const [height, setHeight] = useState(0)
 
-    useEffect(() => {
-        window.addEventListener('load', handleResize)
-        window.addEventListener('resize', handleResize)
+//     const handleResize = useCallback(() => {
+//         setWidth(myRef.current.offsetWidth)
+//         setHeight(myRef.current.offsetHeight)
+//     }, [myRef])
 
-        return () => {
-            window.removeEventListener('load', handleResize)
-            window.removeEventListener('resize', handleResize)
-        }
-    }, [myRef, handleResize])
+//     useEffect(() => {
+//         window.addEventListener('load', handleResize)
+//         window.addEventListener('resize', handleResize)
 
-    return { width, height }
-}
+//         return () => {
+//             window.removeEventListener('load', handleResize)
+//             window.removeEventListener('resize', handleResize)
+//         }
+//     }, [myRef, handleResize])
+
+//     return { width, height }
+// }
 
 function Level(props: { w: number, score: number }) {
 
@@ -70,8 +72,8 @@ function Level(props: { w: number, score: number }) {
     });
 
     const scoreCircle = <animated.g style={{ ...springs }} >
-        <circle r={20} fill={"#F2DB50"} />
-        <text fill={"#000"} style={{ fontWeight: 'bold', fontSize: '12px', userSelect: 'none' }} dominantBaseline="middle" textAnchor="middle">{props.score}</text>
+        <circle r={17} fill={"#F2DB50"} />
+        <text y={1} fill={"#000"} style={{ fontWeight: 'bold', fontSize: '12px', userSelect: 'none' }} dominantBaseline="middle" textAnchor="middle">{props.score}</text>
     </animated.g >
 
 
@@ -105,12 +107,13 @@ function Level(props: { w: number, score: number }) {
 interface CompletedWordsProps {
     words: string[]
     providedLetters: string[]
+    smartIsMobile: boolean
 }
 
-function CompletedWords({ words, providedLetters }: CompletedWordsProps) {
+function CompletedWords({ words, providedLetters, smartIsMobile }: CompletedWordsProps) {
 
     let wordsToUse = []
-    if (!isMobile) {
+    if (!smartIsMobile) {
         wordsToUse = [...words].sort((a, b) => a.localeCompare(b))
     } else {
         wordsToUse = [...words].reverse()
@@ -127,15 +130,15 @@ function CompletedWords({ words, providedLetters }: CompletedWordsProps) {
     return (
         <div className='grow'>
             <div className="border rounded-s p-2 flex flex-col h-auto md:h-full md:p-5">
-                {!isMobile && <h1>{`You have found ${words.length} word${words.length !== 1 ? 's' : ''}`}</h1>}
+                {!smartIsMobile && <h1>{`You have found ${words.length} word${words.length !== 1 ? 's' : ''}`}</h1>}
 
-                {!isMobile && <ul className='p-5 w-[15rem] grow flex flex-col flex-wrap h-3 w-full'>{transitions((style, word) => {
+                {!smartIsMobile && <ul className='p-5 w-[15rem] grow flex flex-col flex-wrap h-3 w-full'>{transitions((style, word) => {
                     const isPanagram = providedLetters.every(letter => word.includes(letter))
 
                     return <animated.li className="border-b pt-3 text-[16px]" style={{ fontWeight: isPanagram ? "bold" : "initial", width: '33.33%', ...style }}>{word.charAt(0).toUpperCase() + word.substring(1).toLowerCase()}</animated.li>
                 })}</ul>}
 
-                {isMobile && <ul className='pb-6 px-2 w-[15rem] grow flex flex-row h-3 w-full'>{transitions((style, word) => {
+                {smartIsMobile && <ul className='pb-6 px-2 w-[15rem] grow flex flex-row h-3 w-full overflow-x-auto overflow-y-hidden'>{transitions((style, word) => {
                     const isPanagram = providedLetters.every(letter => word.includes(letter))
 
                     return <animated.li className="text-[16px] mr-3 mb-1" style={{ fontWeight: isPanagram ? "bold" : "initial", ...style }}>{word.charAt(0).toUpperCase() + word.substring(1).toLowerCase()}</animated.li>
@@ -184,17 +187,18 @@ function getScore(words: string[], providedLetters: string[]) {
 interface WordListProps {
     words: string[]
     providedLetters: string[]
+    smartIsMobile: boolean
 }
-export function WordList({ words, providedLetters }: WordListProps) {
+export function WordList({ smartIsMobile, words, providedLetters }: WordListProps) {
     const componentRef = useRef() as any
-    const { width, height } = useResize(componentRef)
+    const [ref, { width, height }] = useMeasure()
 
     const score = getScore(words, providedLetters)
 
     return (
-        <div className="w-full p-5 flex flex-col" ref={componentRef}>
-            <Level w={width} score={score}></Level>
-            <CompletedWords words={words} providedLetters={providedLetters}></CompletedWords>
+        <div className="w-full p-5 flex flex-col" ref={ref}>
+            <Level w={width||0} score={score}></Level>
+            <CompletedWords words={words} providedLetters={providedLetters} smartIsMobile={smartIsMobile}></CompletedWords>
         </div>
     );
 }
