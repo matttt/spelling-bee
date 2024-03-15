@@ -135,10 +135,10 @@ function CompletedWords({ words, providedLetters }: CompletedWordsProps) {
                     return <animated.li className="border-b pt-3 text-[16px]" style={{ fontWeight: isPanagram ? "bold" : "initial", width: '33.33%', ...style }}>{word.charAt(0).toUpperCase() + word.substring(1).toLowerCase()}</animated.li>
                 })}</ul>}
 
-                {isMobile && <ul className='pb-5 w-[15rem] grow flex flex-row h-3 w-full overflow-x-auto'>{transitions((style, word) => {
+                {isMobile && <ul className='pb-6 px-2 w-[15rem] grow flex flex-row h-3 w-full'>{transitions((style, word) => {
                     const isPanagram = providedLetters.every(letter => word.includes(letter))
 
-                    return <animated.li className="text-[16px] mr-3" style={{ fontWeight: isPanagram ? "bold" : "initial", ...style }}>{word.charAt(0).toUpperCase() + word.substring(1).toLowerCase()}</animated.li>
+                    return <animated.li className="text-[16px] mr-3 mb-1" style={{ fontWeight: isPanagram ? "bold" : "initial", ...style }}>{word.charAt(0).toUpperCase() + word.substring(1).toLowerCase()}</animated.li>
                 })}</ul>}
 
                 {/* <div className='grow bg-slate-50'></div> */}

@@ -25,8 +25,9 @@ export default function Home() {
     // "INHABITING",
     // "INHIBITING",
     // "INITIATING",
-    "TAINTING",
-    "THINNING"];
+    // "TAINTING",
+    // "THINNING"
+  ];
   const [words, setWords] = useState<string[]>(testWords)
   const [curWord, setCurWord] = useState("")
 
