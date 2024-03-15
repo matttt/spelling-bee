@@ -43,8 +43,8 @@ export default function Home() {
 
 
   return (
-    <main className="flex flex-col-reverse h-full md:flex-row overflow-hidden">
-      {smartIsMobile && <div className='grow bg-slate-50'></div>}
+    <main className="flex flex-col-reverse h-screen md:flex-row overflow-hidden w-screen">
+      {smartIsMobile && <div className='grow'></div>}
       <Keypad smartIsMobile={smartIsMobile} initOuterLetters={outerLetters} centerLetter={centerLetter} curWord={curWord} setCurWord={setCurWord} words={words} setWords={setWords} />
       <WordList smartIsMobile={smartIsMobile} words={words} providedLetters={[...outerLetters, centerLetter]} />
       {/* {isMobile && <div className='h-10 bg-slate-50'></div>} */}

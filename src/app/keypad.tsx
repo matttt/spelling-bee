@@ -289,7 +289,7 @@ export function Keypad({ smartIsMobile, initOuterLetters, centerLetter, curWord,
 
 
     return (
-        <div className="w-full" ref={ref}>
+        <div className="w-full md:w-1/2" ref={ref}>
             <div className="flex h-full">
                 <div className="grow"></div>
                 <div className="flex flex-col h-full">

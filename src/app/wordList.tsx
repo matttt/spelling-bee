@@ -196,7 +196,7 @@ export function WordList({ smartIsMobile, words, providedLetters }: WordListProp
     const score = getScore(words, providedLetters)
 
     return (
-        <div className="w-full p-5 flex flex-col" ref={ref}>
+        <div className="w-full p-5 flex flex-col w-full md:w-1/2" ref={ref}>
             <Level w={width||0} score={score}></Level>
             <CompletedWords words={words} providedLetters={providedLetters} smartIsMobile={smartIsMobile}></CompletedWords>
         </div>
